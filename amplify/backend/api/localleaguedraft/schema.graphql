@@ -4,11 +4,11 @@ input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONL
 
 type PlayerEvaluation @model
   @auth(rules: [
-    { allow: public, provider: apiKey },
-    { allow: private, provider: iam }
+    { allow: public, provider: apiKey }
   ]) {
-  id: ID! # Auto-generated unique identifier
-  playerId: Int!
+  id: ID!
+  playerId: ID! @index(name: "byPlayer")
+  player: Player @belongsTo(fields: ["playerId"])
   schoolGrade: Int!
   overallRank: String
   offenseRank: String
@@ -16,4 +16,42 @@ type PlayerEvaluation @model
   slottedRound: Int
   firstTimePlayer: Boolean
   clubPlayer: Boolean
+}
+
+type Player @model {
+  id: ID!
+  name: String!
+  teamID: ID @index(name: "byTeam")
+  team: Team @belongsTo(fields: ["teamID"])
+  evaluations: [PlayerEvaluation] @hasMany(indexName: "byPlayer", fields: ["id"])
+  # Many-to-many with Coach via PlayerCoachAssignment
+  coachAssignments: [PlayerCoachAssignment] @hasMany(indexName: "byPlayer", fields: ["id"])
+}
+
+# Join model for many-to-many Player-Coach relationship
+type PlayerCoachAssignment @model {
+  id: ID!
+  playerId: ID! @index(name: "byPlayer")
+  coachId: ID! @index(name: "byCoach")
+  player: Player @belongsTo(fields: ["playerId"])
+  coach: Coach @belongsTo(fields: ["coachId"])
+}
+
+type Coach @model {
+  id: ID!
+  name: String!
+  teamID: ID @index(name: "byTeam")
+  team: Team @belongsTo(fields: ["teamID"])
+  # Many-to-many with Player via PlayerCoachAssignment
+  playerAssignments: [PlayerCoachAssignment] @hasMany(indexName: "byCoach", fields: ["id"])
+}
+
+type Team @model
+  @auth(rules: [
+    { allow: public, provider: apiKey }
+  ]) {
+  id: ID!
+  name: String!
+  players: [Player] @hasMany(indexName: "byTeam", fields: ["id"])
+  coaches: [Coach] @hasMany(indexName: "byTeam", fields: ["id"])
 }

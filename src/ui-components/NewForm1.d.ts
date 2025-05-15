@@ -22,7 +22,6 @@ export declare type ValidationResponse = {
 };
 export declare type ValidationFunction<T> = (value: T, validationResponse: ValidationResponse) => ValidationResponse | Promise<ValidationResponse>;
 export declare type NewForm1InputValues = {
-    playerId?: number;
     schoolGrade?: number;
     overallRank?: string;
     offenseRank?: string;
@@ -32,7 +31,6 @@ export declare type NewForm1InputValues = {
     clubPlayer?: boolean;
 };
 export declare type NewForm1ValidationValues = {
-    playerId?: ValidationFunction<number>;
     schoolGrade?: ValidationFunction<number>;
     overallRank?: ValidationFunction<string>;
     offenseRank?: ValidationFunction<string>;
@@ -44,7 +42,6 @@ export declare type NewForm1ValidationValues = {
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type NewForm1OverridesProps = {
     NewForm1Grid?: PrimitiveOverrideProps<GridProps>;
-    playerId?: PrimitiveOverrideProps<TextFieldProps>;
     schoolGrade?: PrimitiveOverrideProps<TextFieldProps>;
     overallRank?: PrimitiveOverrideProps<TextFieldProps>;
     offenseRank?: PrimitiveOverrideProps<TextFieldProps>;

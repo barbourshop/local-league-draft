@@ -4,15 +4,15 @@
     "apiName": "localleaguedraft",
     "serviceName": "AppSync",
     "defaultAuthType": {
-      "mode": "AWS_IAM"
+      "mode": "API_KEY",
+      "expirationTime": 365,
+      "apiKeyExpirationDate": "2026-05-15T14:23:41.415Z",
+      "keyDescription": ""
     },
     "conflictResolution": {},
     "additionalAuthTypes": [
       {
-        "mode": "API_KEY",
-        "expirationTime": 365,
-        "apiKeyExpirationDate": "2026-05-14T21:55:23.567Z",
-        "keyDescription": ""
+        "mode": "AWS_IAM"
       }
     ]
   }
