@@ -23,9 +23,18 @@ type Player @model {
   name: String!
   teamID: ID @index(name: "byTeam")
   team: Team @belongsTo(fields: ["teamID"])
-  coachId: ID @index(name: "byCoach")
-  coach: Coach @belongsTo(fields: ["coachId"])
   evaluations: [PlayerEvaluation] @hasMany(indexName: "byPlayer", fields: ["id"])
+  # Many-to-many with Coach via PlayerCoachAssignment
+  coachAssignments: [PlayerCoachAssignment] @hasMany(indexName: "byPlayer", fields: ["id"])
+}
+
+# Join model for many-to-many Player-Coach relationship
+type PlayerCoachAssignment @model {
+  id: ID!
+  playerId: ID! @index(name: "byPlayer")
+  coachId: ID! @index(name: "byCoach")
+  player: Player @belongsTo(fields: ["playerId"])
+  coach: Coach @belongsTo(fields: ["coachId"])
 }
 
 type Coach @model {
@@ -33,7 +42,8 @@ type Coach @model {
   name: String!
   teamID: ID @index(name: "byTeam")
   team: Team @belongsTo(fields: ["teamID"])
-  players: [Player] @hasMany(indexName: "byCoach", fields: ["id"])
+  # Many-to-many with Player via PlayerCoachAssignment
+  playerAssignments: [PlayerCoachAssignment] @hasMany(indexName: "byCoach", fields: ["id"])
 }
 
 type Team @model

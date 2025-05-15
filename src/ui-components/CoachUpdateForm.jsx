@@ -26,18 +26,14 @@ export default function CoachUpdateForm(props) {
   } = props;
   const initialValues = {
     name: "",
-    teamID: "",
   };
   const [name, setName] = React.useState(initialValues.name);
-  const [teamID, setTeamID] = React.useState(initialValues.teamID);
-  const [teams, setTeams] = React.useState([]);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     const cleanValues = coachRecord
       ? { ...initialValues, ...coachRecord }
       : initialValues;
     setName(cleanValues.name);
-    setTeamID(cleanValues.teamID || "");
     setErrors({});
   };
   const [coachRecord, setCoachRecord] = React.useState(coachModelProp);
@@ -52,9 +48,6 @@ export default function CoachUpdateForm(props) {
           )?.data?.getCoach
         : coachModelProp;
       setCoachRecord(record);
-      // Fetch teams
-      const teamsResult = await client.graphql({ query: require("../graphql/queries").listTeams });
-      setTeams(teamsResult.data.listTeams.items);
     };
     queryData();
   }, [idProp, coachModelProp]);
@@ -89,7 +82,6 @@ export default function CoachUpdateForm(props) {
         event.preventDefault();
         let modelFields = {
           name,
-          teamID: teamID || null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -151,7 +143,6 @@ export default function CoachUpdateForm(props) {
           if (onChange) {
             const modelFields = {
               name: value,
-              teamID,
             };
             const result = onChange(modelFields);
             value = result?.name ?? value;
@@ -166,18 +157,6 @@ export default function CoachUpdateForm(props) {
         hasError={errors.name?.hasError}
         {...getOverrideProps(overrides, "name")}
       ></TextField>
-      <label htmlFor="team-select">Team</label>
-      <select
-        id="team-select"
-        value={teamID || ""}
-        onChange={e => setTeamID(e.target.value)}
-        style={{ marginBottom: 16 }}
-      >
-        <option value="">-- Unassigned --</option>
-        {teams.map(team => (
-          <option key={team.id} value={team.id}>{team.name}</option>
-        ))}
-      </select>
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}

@@ -17,16 +17,11 @@ export const createPlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
-      coachId
-      coach {
-        id
-        name
-        teamID
-        createdAt
-        updatedAt
+      evaluations {
+        nextToken
         __typename
       }
-      evaluations {
+      coachAssignments {
         nextToken
         __typename
       }
@@ -52,16 +47,11 @@ export const updatePlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
-      coachId
-      coach {
-        id
-        name
-        teamID
-        createdAt
-        updatedAt
+      evaluations {
+        nextToken
         __typename
       }
-      evaluations {
+      coachAssignments {
         nextToken
         __typename
       }
@@ -87,7 +77,37 @@ export const deletePlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
+      evaluations {
+        nextToken
+        __typename
+      }
+      coachAssignments {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const createPlayerCoachAssignment = /* GraphQL */ `
+  mutation CreatePlayerCoachAssignment(
+    $input: CreatePlayerCoachAssignmentInput!
+    $condition: ModelPlayerCoachAssignmentConditionInput
+  ) {
+    createPlayerCoachAssignment(input: $input, condition: $condition) {
+      id
+      playerId
       coachId
+      player {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
       coach {
         id
         name
@@ -96,8 +116,66 @@ export const deletePlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
-      evaluations {
-        nextToken
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updatePlayerCoachAssignment = /* GraphQL */ `
+  mutation UpdatePlayerCoachAssignment(
+    $input: UpdatePlayerCoachAssignmentInput!
+    $condition: ModelPlayerCoachAssignmentConditionInput
+  ) {
+    updatePlayerCoachAssignment(input: $input, condition: $condition) {
+      id
+      playerId
+      coachId
+      player {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      coach {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deletePlayerCoachAssignment = /* GraphQL */ `
+  mutation DeletePlayerCoachAssignment(
+    $input: DeletePlayerCoachAssignmentInput!
+    $condition: ModelPlayerCoachAssignmentConditionInput
+  ) {
+    deletePlayerCoachAssignment(input: $input, condition: $condition) {
+      id
+      playerId
+      coachId
+      player {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      coach {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
         __typename
       }
       createdAt
@@ -122,7 +200,7 @@ export const createCoach = /* GraphQL */ `
         updatedAt
         __typename
       }
-      players {
+      playerAssignments {
         nextToken
         __typename
       }
@@ -148,7 +226,7 @@ export const updateCoach = /* GraphQL */ `
         updatedAt
         __typename
       }
-      players {
+      playerAssignments {
         nextToken
         __typename
       }
@@ -174,7 +252,7 @@ export const deleteCoach = /* GraphQL */ `
         updatedAt
         __typename
       }
-      players {
+      playerAssignments {
         nextToken
         __typename
       }
@@ -196,7 +274,6 @@ export const createPlayerEvaluation = /* GraphQL */ `
         id
         name
         teamID
-        coachId
         createdAt
         updatedAt
         __typename
@@ -226,7 +303,6 @@ export const updatePlayerEvaluation = /* GraphQL */ `
         id
         name
         teamID
-        coachId
         createdAt
         updatedAt
         __typename
@@ -256,7 +332,6 @@ export const deletePlayerEvaluation = /* GraphQL */ `
         id
         name
         teamID
-        coachId
         createdAt
         updatedAt
         __typename

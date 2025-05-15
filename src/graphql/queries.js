@@ -14,16 +14,11 @@ export const getPlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
-      coachId
-      coach {
-        id
-        name
-        teamID
-        createdAt
-        updatedAt
+      evaluations {
+        nextToken
         __typename
       }
-      evaluations {
+      coachAssignments {
         nextToken
         __typename
       }
@@ -44,6 +39,57 @@ export const listPlayers = /* GraphQL */ `
         id
         name
         teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getPlayerCoachAssignment = /* GraphQL */ `
+  query GetPlayerCoachAssignment($id: ID!) {
+    getPlayerCoachAssignment(id: $id) {
+      id
+      playerId
+      coachId
+      player {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      coach {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listPlayerCoachAssignments = /* GraphQL */ `
+  query ListPlayerCoachAssignments(
+    $filter: ModelPlayerCoachAssignmentFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listPlayerCoachAssignments(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        playerId
         coachId
         createdAt
         updatedAt
@@ -67,7 +113,7 @@ export const getCoach = /* GraphQL */ `
         updatedAt
         __typename
       }
-      players {
+      playerAssignments {
         nextToken
         __typename
       }
@@ -116,6 +162,33 @@ export const playersByTeamID = /* GraphQL */ `
         id
         name
         teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const playerCoachAssignmentsByPlayerId = /* GraphQL */ `
+  query PlayerCoachAssignmentsByPlayerId(
+    $playerId: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelPlayerCoachAssignmentFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    playerCoachAssignmentsByPlayerId(
+      playerId: $playerId
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        playerId
         coachId
         createdAt
         updatedAt
@@ -126,15 +199,15 @@ export const playersByTeamID = /* GraphQL */ `
     }
   }
 `;
-export const playersByCoachId = /* GraphQL */ `
-  query PlayersByCoachId(
+export const playerCoachAssignmentsByCoachId = /* GraphQL */ `
+  query PlayerCoachAssignmentsByCoachId(
     $coachId: ID!
     $sortDirection: ModelSortDirection
-    $filter: ModelPlayerFilterInput
+    $filter: ModelPlayerCoachAssignmentFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    playersByCoachId(
+    playerCoachAssignmentsByCoachId(
       coachId: $coachId
       sortDirection: $sortDirection
       filter: $filter
@@ -143,8 +216,7 @@ export const playersByCoachId = /* GraphQL */ `
     ) {
       items {
         id
-        name
-        teamID
+        playerId
         coachId
         createdAt
         updatedAt
@@ -192,7 +264,6 @@ export const getPlayerEvaluation = /* GraphQL */ `
         id
         name
         teamID
-        coachId
         createdAt
         updatedAt
         __typename

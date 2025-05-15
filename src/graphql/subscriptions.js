@@ -14,16 +14,11 @@ export const onCreatePlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
-      coachId
-      coach {
-        id
-        name
-        teamID
-        createdAt
-        updatedAt
+      evaluations {
+        nextToken
         __typename
       }
-      evaluations {
+      coachAssignments {
         nextToken
         __typename
       }
@@ -46,16 +41,11 @@ export const onUpdatePlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
-      coachId
-      coach {
-        id
-        name
-        teamID
-        createdAt
-        updatedAt
+      evaluations {
+        nextToken
         __typename
       }
-      evaluations {
+      coachAssignments {
         nextToken
         __typename
       }
@@ -78,7 +68,36 @@ export const onDeletePlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
+      evaluations {
+        nextToken
+        __typename
+      }
+      coachAssignments {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreatePlayerCoachAssignment = /* GraphQL */ `
+  subscription OnCreatePlayerCoachAssignment(
+    $filter: ModelSubscriptionPlayerCoachAssignmentFilterInput
+  ) {
+    onCreatePlayerCoachAssignment(filter: $filter) {
+      id
+      playerId
       coachId
+      player {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
       coach {
         id
         name
@@ -87,8 +106,64 @@ export const onDeletePlayer = /* GraphQL */ `
         updatedAt
         __typename
       }
-      evaluations {
-        nextToken
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdatePlayerCoachAssignment = /* GraphQL */ `
+  subscription OnUpdatePlayerCoachAssignment(
+    $filter: ModelSubscriptionPlayerCoachAssignmentFilterInput
+  ) {
+    onUpdatePlayerCoachAssignment(filter: $filter) {
+      id
+      playerId
+      coachId
+      player {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      coach {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeletePlayerCoachAssignment = /* GraphQL */ `
+  subscription OnDeletePlayerCoachAssignment(
+    $filter: ModelSubscriptionPlayerCoachAssignmentFilterInput
+  ) {
+    onDeletePlayerCoachAssignment(filter: $filter) {
+      id
+      playerId
+      coachId
+      player {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      coach {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
         __typename
       }
       createdAt
@@ -110,7 +185,7 @@ export const onCreateCoach = /* GraphQL */ `
         updatedAt
         __typename
       }
-      players {
+      playerAssignments {
         nextToken
         __typename
       }
@@ -133,7 +208,7 @@ export const onUpdateCoach = /* GraphQL */ `
         updatedAt
         __typename
       }
-      players {
+      playerAssignments {
         nextToken
         __typename
       }
@@ -156,7 +231,7 @@ export const onDeleteCoach = /* GraphQL */ `
         updatedAt
         __typename
       }
-      players {
+      playerAssignments {
         nextToken
         __typename
       }
@@ -177,7 +252,6 @@ export const onCreatePlayerEvaluation = /* GraphQL */ `
         id
         name
         teamID
-        coachId
         createdAt
         updatedAt
         __typename
@@ -206,7 +280,6 @@ export const onUpdatePlayerEvaluation = /* GraphQL */ `
         id
         name
         teamID
-        coachId
         createdAt
         updatedAt
         __typename
@@ -235,7 +308,6 @@ export const onDeletePlayerEvaluation = /* GraphQL */ `
         id
         name
         teamID
-        coachId
         createdAt
         updatedAt
         __typename
