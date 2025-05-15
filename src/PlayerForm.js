@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { generateClient } from 'aws-amplify/api';
-import { getPlayerEvaluation } from './graphql/queries';
-import { createPlayerEvaluation, updatePlayerEvaluation, deletePlayerEvaluation } from './graphql/mutations';
+import { getPlayer, listPlayers } from './graphql/queries';
+import { createPlayer, updatePlayer, deletePlayer } from './graphql/mutations';
 
 const columns = [
-  { key: 'playerId', label: 'Player ID' },
+  { key: 'name', label: 'Name' },
   { key: 'schoolGrade', label: 'School Grade' },
   { key: 'overallRank', label: 'Overall Rank' },
   { key: 'offenseRank', label: 'Offense Rank' },
@@ -26,11 +26,11 @@ export default function PlayerForm({ mode, onSave }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const requiredNumericFields = ['playerId', 'schoolGrade'];
+  const requiredFields = ['name', 'schoolGrade'];
 
   const allowedFields = [
     'id',
-    'playerId',
+    'name',
     'schoolGrade',
     'overallRank',
     'offenseRank',
@@ -44,11 +44,11 @@ export default function PlayerForm({ mode, onSave }) {
     if (mode === 'edit' && id) {
       setLoading(true);
       client.graphql({
-        query: getPlayerEvaluation,
+        query: getPlayer,
         variables: { id },
       })
         .then(result => {
-          setForm(result.data.getPlayerEvaluation || {});
+          setForm(result.data.getPlayer || {});
         })
         .catch(err => setError(err.message || 'Error fetching player'))
         .finally(() => setLoading(false));
@@ -68,9 +68,9 @@ export default function PlayerForm({ mode, onSave }) {
     setSaving(true);
     setError(null);
     // Validation
-    for (const key of requiredNumericFields) {
-      if (!form[key] || isNaN(Number(form[key]))) {
-        setError(`${columns.find(c => c.key === key).label} is required and must be a number.`);
+    for (const key of requiredFields) {
+      if (!form[key] || (key === 'schoolGrade' && isNaN(Number(form[key])))) {
+        setError(`${columns.find(c => c.key === key).label} is required${key === 'schoolGrade' ? ' and must be a number' : ''}.`);
         setSaving(false);
         return;
       }
@@ -82,7 +82,7 @@ export default function PlayerForm({ mode, onSave }) {
         if (form[key] !== undefined) input[key] = form[key];
       });
       // Convert numeric fields
-      ['playerId', 'schoolGrade', 'slottedRound'].forEach(key => {
+      ['schoolGrade', 'slottedRound'].forEach(key => {
         if (input[key] !== undefined && input[key] !== null && input[key] !== '') {
           input[key] = Number(input[key]);
         }
@@ -90,12 +90,12 @@ export default function PlayerForm({ mode, onSave }) {
       if (mode === 'edit') {
         input.id = id;
         await client.graphql({
-          query: updatePlayerEvaluation,
+          query: updatePlayer,
           variables: { input },
         });
       } else {
         await client.graphql({
-          query: createPlayerEvaluation,
+          query: createPlayer,
           variables: { input },
         });
       }
@@ -121,7 +121,7 @@ export default function PlayerForm({ mode, onSave }) {
     setError(null);
     try {
       await client.graphql({
-        query: deletePlayerEvaluation,
+        query: deletePlayer,
         variables: { input: { id } },
       });
       if (onSave) onSave();
@@ -141,7 +141,7 @@ export default function PlayerForm({ mode, onSave }) {
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
+  if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
     <div className="container" style={{ maxWidth: 500, marginTop: 40 }}>
@@ -163,7 +163,7 @@ export default function PlayerForm({ mode, onSave }) {
               />
             ) : (
               <input
-                type="text"
+                type={col.key === 'schoolGrade' || col.key === 'slottedRound' ? 'number' : 'text'}
                 name={col.key}
                 value={form[col.key] ?? ''}
                 onChange={handleChange}
@@ -173,12 +173,15 @@ export default function PlayerForm({ mode, onSave }) {
             )}
           </div>
         ))}
-        <div style={{ display: 'flex', gap: 16, marginTop: 32 }}>
-          <button type="submit" style={{ padding: '8px 20px', fontWeight: 600 }} disabled={saving || deleting}>{saving ? 'Saving...' : 'Save'}</button>
-          <button type="button" style={{ padding: '8px 20px' }} onClick={() => navigate(-1)} disabled={saving || deleting}>Cancel</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
           {mode === 'edit' && (
-            <button type="button" style={{ padding: '8px 20px', color: 'white', background: '#d32f2f', fontWeight: 600 }} onClick={handleDelete} disabled={saving || deleting}>{deleting ? 'Deleting...' : 'Delete'}</button>
+            <button type="button" onClick={handleDelete} disabled={deleting} style={{ color: 'red' }}>
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
           )}
+          <button type="submit" disabled={saving} style={{ marginLeft: 'auto' }}>
+            {saving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </form>
     </div>

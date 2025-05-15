@@ -29,7 +29,6 @@ export default function NewForm1(props) {
     ...rest
   } = props;
   const initialValues = {
-    playerId: "",
     schoolGrade: "",
     overallRank: "",
     offenseRank: "",
@@ -38,7 +37,6 @@ export default function NewForm1(props) {
     firstTimePlayer: false,
     clubPlayer: false,
   };
-  const [playerId, setPlayerId] = React.useState(initialValues.playerId);
   const [schoolGrade, setSchoolGrade] = React.useState(
     initialValues.schoolGrade
   );
@@ -60,7 +58,6 @@ export default function NewForm1(props) {
   const [clubPlayer, setClubPlayer] = React.useState(initialValues.clubPlayer);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
-    setPlayerId(initialValues.playerId);
     setSchoolGrade(initialValues.schoolGrade);
     setOverallRank(initialValues.overallRank);
     setOffenseRank(initialValues.offenseRank);
@@ -71,7 +68,6 @@ export default function NewForm1(props) {
     setErrors({});
   };
   const validations = {
-    playerId: [{ type: "Required" }],
     schoolGrade: [{ type: "Required" }],
     overallRank: [],
     offenseRank: [],
@@ -106,7 +102,6 @@ export default function NewForm1(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
-          playerId,
           schoolGrade,
           overallRank,
           offenseRank,
@@ -168,41 +163,6 @@ export default function NewForm1(props) {
       {...rest}
     >
       <TextField
-        label="Player id"
-        isRequired={true}
-        isReadOnly={false}
-        type="number"
-        step="any"
-        value={playerId}
-        onChange={(e) => {
-          let value = isNaN(parseInt(e.target.value))
-            ? e.target.value
-            : parseInt(e.target.value);
-          if (onChange) {
-            const modelFields = {
-              playerId: value,
-              schoolGrade,
-              overallRank,
-              offenseRank,
-              defenseRank,
-              slottedRound,
-              firstTimePlayer,
-              clubPlayer,
-            };
-            const result = onChange(modelFields);
-            value = result?.playerId ?? value;
-          }
-          if (errors.playerId?.hasError) {
-            runValidationTasks("playerId", value);
-          }
-          setPlayerId(value);
-        }}
-        onBlur={() => runValidationTasks("playerId", playerId)}
-        errorMessage={errors.playerId?.errorMessage}
-        hasError={errors.playerId?.hasError}
-        {...getOverrideProps(overrides, "playerId")}
-      ></TextField>
-      <TextField
         label="School grade"
         isRequired={true}
         isReadOnly={false}
@@ -215,7 +175,6 @@ export default function NewForm1(props) {
             : parseInt(e.target.value);
           if (onChange) {
             const modelFields = {
-              playerId,
               schoolGrade: value,
               overallRank,
               offenseRank,
@@ -246,7 +205,6 @@ export default function NewForm1(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              playerId,
               schoolGrade,
               overallRank: value,
               offenseRank,
@@ -277,7 +235,6 @@ export default function NewForm1(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              playerId,
               schoolGrade,
               overallRank,
               offenseRank: value,
@@ -308,7 +265,6 @@ export default function NewForm1(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              playerId,
               schoolGrade,
               overallRank,
               offenseRank,
@@ -343,7 +299,6 @@ export default function NewForm1(props) {
             : parseInt(e.target.value);
           if (onChange) {
             const modelFields = {
-              playerId,
               schoolGrade,
               overallRank,
               offenseRank,
@@ -374,7 +329,6 @@ export default function NewForm1(props) {
           let value = e.target.checked;
           if (onChange) {
             const modelFields = {
-              playerId,
               schoolGrade,
               overallRank,
               offenseRank,
@@ -405,7 +359,6 @@ export default function NewForm1(props) {
           let value = e.target.checked;
           if (onChange) {
             const modelFields = {
-              playerId,
               schoolGrade,
               overallRank,
               offenseRank,

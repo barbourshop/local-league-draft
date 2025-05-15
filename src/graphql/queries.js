@@ -1,11 +1,202 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const getPlayer = /* GraphQL */ `
+  query GetPlayer($id: ID!) {
+    getPlayer(id: $id) {
+      id
+      name
+      teamID
+      team {
+        id
+        name
+        createdAt
+        updatedAt
+        __typename
+      }
+      coachId
+      coach {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      evaluations {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listPlayers = /* GraphQL */ `
+  query ListPlayers(
+    $filter: ModelPlayerFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listPlayers(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        name
+        teamID
+        coachId
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getCoach = /* GraphQL */ `
+  query GetCoach($id: ID!) {
+    getCoach(id: $id) {
+      id
+      name
+      teamID
+      team {
+        id
+        name
+        createdAt
+        updatedAt
+        __typename
+      }
+      players {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listCoaches = /* GraphQL */ `
+  query ListCoaches(
+    $filter: ModelCoachFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listCoaches(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const playersByTeamID = /* GraphQL */ `
+  query PlayersByTeamID(
+    $teamID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelPlayerFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    playersByTeamID(
+      teamID: $teamID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        name
+        teamID
+        coachId
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const playersByCoachId = /* GraphQL */ `
+  query PlayersByCoachId(
+    $coachId: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelPlayerFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    playersByCoachId(
+      coachId: $coachId
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        name
+        teamID
+        coachId
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const coachesByTeamID = /* GraphQL */ `
+  query CoachesByTeamID(
+    $teamID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelCoachFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    coachesByTeamID(
+      teamID: $teamID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        name
+        teamID
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
 export const getPlayerEvaluation = /* GraphQL */ `
   query GetPlayerEvaluation($id: ID!) {
     getPlayerEvaluation(id: $id) {
       id
       playerId
+      player {
+        id
+        name
+        teamID
+        coachId
+        createdAt
+        updatedAt
+        __typename
+      }
       schoolGrade
       overallRank
       offenseRank
@@ -40,6 +231,78 @@ export const listPlayerEvaluations = /* GraphQL */ `
         slottedRound
         firstTimePlayer
         clubPlayer
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const playerEvaluationsByPlayerId = /* GraphQL */ `
+  query PlayerEvaluationsByPlayerId(
+    $playerId: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelPlayerEvaluationFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    playerEvaluationsByPlayerId(
+      playerId: $playerId
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        playerId
+        schoolGrade
+        overallRank
+        offenseRank
+        defenseRank
+        slottedRound
+        firstTimePlayer
+        clubPlayer
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getTeam = /* GraphQL */ `
+  query GetTeam($id: ID!) {
+    getTeam(id: $id) {
+      id
+      name
+      players {
+        nextToken
+        __typename
+      }
+      coaches {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listTeams = /* GraphQL */ `
+  query ListTeams(
+    $filter: ModelTeamFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listTeams(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        name
         createdAt
         updatedAt
         __typename

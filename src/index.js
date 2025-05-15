@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import { generateClient } from 'aws-amplify/api';
-import { listPlayerEvaluations } from './graphql/queries';
+import { listPlayers, listPlayerEvaluations, listTeams, listCoaches } from './graphql/queries';
+import { updatePlayer } from './graphql/mutations';
 import {
   BrowserRouter as Router,
   Routes,
@@ -13,23 +14,29 @@ import {
   useParams
 } from 'react-router-dom';
 import PlayerForm from './PlayerForm';
+import TeamsPage from './TeamsPage';
+import AssignPlayersPage from './AssignPlayersPage';
+import CoachesPage from './CoachesPage';
+import TeamDetailsPage from './TeamDetailsPage';
 
 Amplify.configure(awsExports);
 
 const client = generateClient();
 
 const columns = [
-  { key: 'playerId', label: 'Player ID' },
+  { key: 'name', label: 'Player' },
   { key: 'schoolGrade', label: 'School Grade' },
   { key: 'overallRank', label: 'Overall Rank' },
   { key: 'offenseRank', label: 'Offense Rank' },
   { key: 'defenseRank', label: 'Defense Rank' },
-  { key: 'slottedRound', label: 'Slotted Round' },
   { key: 'firstTimePlayer', label: 'First Time Player' },
   { key: 'clubPlayer', label: 'Club Player' },
+  { key: 'teamName', label: 'Team' },
 ];
 
-function PlayerTable({ evaluations, loading, error, filters, setFilters, notFilters, setNotFilters, sortConfig, setSortConfig }) {
+function PlayerTable({ players, loading, error, filters, setFilters, notFilters, setNotFilters, sortConfig, setSortConfig, onUpdate }) {
+  const [refresh, setRefresh] = useState(0);
+
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
@@ -49,12 +56,12 @@ function PlayerTable({ evaluations, loading, error, filters, setFilters, notFilt
     });
   };
 
-  const filteredEvaluations = evaluations.filter(ev =>
+  const filteredPlayers = players.filter(p =>
     columns.every(col => {
       const filterValue = filters[col.key];
       const not = notFilters[col.key];
       if (!filterValue) return true;
-      let cellValue = ev[col.key];
+      let cellValue = p[col.key];
       if (typeof cellValue === 'boolean') {
         cellValue = cellValue ? 'Yes' : 'No';
       }
@@ -63,9 +70,9 @@ function PlayerTable({ evaluations, loading, error, filters, setFilters, notFilt
     })
   );
 
-  const sortedEvaluations = React.useMemo(() => {
-    if (!sortConfig.key) return filteredEvaluations;
-    const sorted = [...filteredEvaluations];
+  const sortedPlayers = React.useMemo(() => {
+    if (!sortConfig.key) return filteredPlayers;
+    const sorted = [...filteredPlayers];
     sorted.sort((a, b) => {
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
@@ -88,7 +95,7 @@ function PlayerTable({ evaluations, loading, error, filters, setFilters, notFilt
       return 0;
     });
     return sorted;
-  }, [filteredEvaluations, sortConfig]);
+  }, [filteredPlayers, sortConfig]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -140,14 +147,16 @@ function PlayerTable({ evaluations, loading, error, filters, setFilters, notFilt
           </tr>
         </thead>
         <tbody>
-          {sortedEvaluations.map(ev => (
-            <tr key={ev.id}>
+          {sortedPlayers.map(p => (
+            <tr key={p.id}>
               {columns.map(col => (
                 <td key={col.key}>
-                  {col.key === 'playerId' ? (
-                    <Link to={`/edit/${ev.id}`}>{typeof ev[col.key] === 'boolean' ? (ev[col.key] ? 'Yes' : 'No') : ev[col.key]}</Link>
+                  {col.key === 'name' ? (
+                    <Link to={`/edit/${p.id}`}>{p.name || p.id}</Link>
+                  ) : col.key === 'teamName' ? (
+                    p.teamName
                   ) : (
-                    typeof ev[col.key] === 'boolean' ? (ev[col.key] ? 'Yes' : 'No') : ev[col.key]
+                    typeof p[col.key] === 'boolean' ? (p[col.key] ? 'Yes' : 'No') : p[col.key]
                   )}
                 </td>
               ))}
@@ -157,7 +166,7 @@ function PlayerTable({ evaluations, loading, error, filters, setFilters, notFilt
       </table>
       <div style={{ marginTop: 32, textAlign: 'right' }}>
         <Link to="/new" style={{ fontWeight: 600, fontSize: '1.1em', textDecoration: 'underline' }}>
-          + Create New Player
+          + Create New Player Evaluation
         </Link>
       </div>
     </div>
@@ -165,7 +174,7 @@ function PlayerTable({ evaluations, loading, error, filters, setFilters, notFilt
 }
 
 function App() {
-  const [evaluations, setEvaluations] = useState([]);
+  const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
@@ -177,10 +186,35 @@ function App() {
     async function fetchData() {
       setLoading(true);
       try {
-        const result = await client.graphql({
-          query: listPlayerEvaluations,
+        const [playerRes, evalRes, teamRes, coachRes] = await Promise.all([
+          client.graphql({ query: listPlayers }),
+          client.graphql({ query: listPlayerEvaluations }),
+          client.graphql({ query: listTeams }),
+          client.graphql({ query: listCoaches }),
+        ]);
+        const players = playerRes.data.listPlayers.items;
+        const evaluations = evalRes.data.listPlayerEvaluations.items;
+        const teams = teamRes.data.listTeams.items;
+        const coaches = coachRes.data.listCoaches.items;
+        // Join data
+        const joined = players.map(player => {
+          const evaluation = evaluations.find(e => e.playerId === player.id) || {};
+          const team = teams.find(t => t.id === player.teamID);
+          // Find coach by player.coachId, or by teamID
+          let coach = null;
+          if (player.coachId) {
+            coach = coaches.find(c => c.id === player.coachId);
+          } else if (player.teamID) {
+            coach = coaches.find(c => c.teamID === player.teamID);
+          }
+          return {
+            ...player,
+            ...evaluation,
+            teamName: team ? team.name : '',
+            coachName: coach ? coach.name : '',
+          };
         });
-        setEvaluations(result.data.listPlayerEvaluations.items);
+        setPlayers(joined);
       } catch (err) {
         setError(err.message || 'Error fetching data');
       } finally {
@@ -194,12 +228,18 @@ function App() {
 
   return (
     <Router>
+      <div style={{ padding: 16, borderBottom: '1px solid #eee', marginBottom: 24 }}>
+        <Link to="/" style={{ marginRight: 16 }}>Players</Link>
+        <Link to="/teams" style={{ marginRight: 16 }}>Teams</Link>
+        <Link to="/coaches" style={{ marginRight: 16 }}>Coaches</Link>
+        <Link to="/assign-players">Assign Players</Link>
+      </div>
       <Routes>
         <Route
           path="/"
           element={
             <PlayerTable
-              evaluations={evaluations}
+              players={players}
               loading={loading}
               error={error}
               filters={filters}
@@ -208,11 +248,16 @@ function App() {
               setNotFilters={setNotFilters}
               sortConfig={sortConfig}
               setSortConfig={setSortConfig}
+              onUpdate={handleRefresh}
             />
           }
         />
+        <Route path="/teams" element={<TeamsPage />} />
+        <Route path="/coaches" element={<CoachesPage />} />
+        <Route path="/assign-players" element={<AssignPlayersPage />} />
         <Route path="/new" element={<PlayerForm mode="new" onSave={handleRefresh} />} />
         <Route path="/edit/:id" element={<PlayerForm mode="edit" onSave={handleRefresh} />} />
+        <Route path="/teams/:id" element={<TeamDetailsPage />} />
       </Routes>
     </Router>
   );
