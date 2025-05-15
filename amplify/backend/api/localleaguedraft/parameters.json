@@ -1,0 +1,6 @@
+{
+  "AppSyncApiName": "localleaguedraft",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthModeLastUpdated": "2025-05-14T21:50:02.388Z"
+}
