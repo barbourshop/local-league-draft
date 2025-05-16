@@ -15,6 +15,7 @@ export const createPlayer = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       evaluations {
@@ -45,6 +46,7 @@ export const updatePlayer = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       evaluations {
@@ -75,6 +77,7 @@ export const deletePlayer = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       evaluations {
@@ -198,6 +201,7 @@ export const createCoach = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       playerAssignments {
@@ -224,6 +228,7 @@ export const updateCoach = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       playerAssignments {
@@ -250,6 +255,7 @@ export const deleteCoach = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       playerAssignments {
@@ -367,6 +373,7 @@ export const createTeam = /* GraphQL */ `
       }
       createdAt
       updatedAt
+      draftTeamsId
       __typename
     }
   }
@@ -389,6 +396,7 @@ export const updateTeam = /* GraphQL */ `
       }
       createdAt
       updatedAt
+      draftTeamsId
       __typename
     }
   }
@@ -409,6 +417,151 @@ export const deleteTeam = /* GraphQL */ `
         nextToken
         __typename
       }
+      createdAt
+      updatedAt
+      draftTeamsId
+      __typename
+    }
+  }
+`;
+export const createDraft = /* GraphQL */ `
+  mutation CreateDraft(
+    $input: CreateDraftInput!
+    $condition: ModelDraftConditionInput
+  ) {
+    createDraft(input: $input, condition: $condition) {
+      id
+      name
+      phase
+      teams {
+        nextToken
+        __typename
+      }
+      draftOrder
+      picks {
+        nextToken
+        __typename
+      }
+      preAssignedPlayers {
+        playerID
+        teamID
+        slottedRound
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateDraft = /* GraphQL */ `
+  mutation UpdateDraft(
+    $input: UpdateDraftInput!
+    $condition: ModelDraftConditionInput
+  ) {
+    updateDraft(input: $input, condition: $condition) {
+      id
+      name
+      phase
+      teams {
+        nextToken
+        __typename
+      }
+      draftOrder
+      picks {
+        nextToken
+        __typename
+      }
+      preAssignedPlayers {
+        playerID
+        teamID
+        slottedRound
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteDraft = /* GraphQL */ `
+  mutation DeleteDraft(
+    $input: DeleteDraftInput!
+    $condition: ModelDraftConditionInput
+  ) {
+    deleteDraft(input: $input, condition: $condition) {
+      id
+      name
+      phase
+      teams {
+        nextToken
+        __typename
+      }
+      draftOrder
+      picks {
+        nextToken
+        __typename
+      }
+      preAssignedPlayers {
+        playerID
+        teamID
+        slottedRound
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const createDraftPick = /* GraphQL */ `
+  mutation CreateDraftPick(
+    $input: CreateDraftPickInput!
+    $condition: ModelDraftPickConditionInput
+  ) {
+    createDraftPick(input: $input, condition: $condition) {
+      id
+      draftID
+      round
+      teamID
+      playerID
+      slottedRound
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateDraftPick = /* GraphQL */ `
+  mutation UpdateDraftPick(
+    $input: UpdateDraftPickInput!
+    $condition: ModelDraftPickConditionInput
+  ) {
+    updateDraftPick(input: $input, condition: $condition) {
+      id
+      draftID
+      round
+      teamID
+      playerID
+      slottedRound
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteDraftPick = /* GraphQL */ `
+  mutation DeleteDraftPick(
+    $input: DeleteDraftPickInput!
+    $condition: ModelDraftPickConditionInput
+  ) {
+    deleteDraftPick(input: $input, condition: $condition) {
+      id
+      draftID
+      round
+      teamID
+      playerID
+      slottedRound
       createdAt
       updatedAt
       __typename

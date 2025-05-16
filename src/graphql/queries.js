@@ -12,6 +12,7 @@ export const getPlayer = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       evaluations {
@@ -111,6 +112,7 @@ export const getCoach = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       playerAssignments {
@@ -360,6 +362,7 @@ export const getTeam = /* GraphQL */ `
       }
       createdAt
       updatedAt
+      draftTeamsId
       __typename
     }
   }
@@ -374,6 +377,124 @@ export const listTeams = /* GraphQL */ `
       items {
         id
         name
+        createdAt
+        updatedAt
+        draftTeamsId
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getDraft = /* GraphQL */ `
+  query GetDraft($id: ID!) {
+    getDraft(id: $id) {
+      id
+      name
+      phase
+      teams {
+        nextToken
+        __typename
+      }
+      draftOrder
+      picks {
+        nextToken
+        __typename
+      }
+      preAssignedPlayers {
+        playerID
+        teamID
+        slottedRound
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listDrafts = /* GraphQL */ `
+  query ListDrafts(
+    $filter: ModelDraftFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listDrafts(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        name
+        phase
+        draftOrder
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getDraftPick = /* GraphQL */ `
+  query GetDraftPick($id: ID!) {
+    getDraftPick(id: $id) {
+      id
+      draftID
+      round
+      teamID
+      playerID
+      slottedRound
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listDraftPicks = /* GraphQL */ `
+  query ListDraftPicks(
+    $filter: ModelDraftPickFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listDraftPicks(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        draftID
+        round
+        teamID
+        playerID
+        slottedRound
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const draftPicksByDraftID = /* GraphQL */ `
+  query DraftPicksByDraftID(
+    $draftID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelDraftPickFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    draftPicksByDraftID(
+      draftID: $draftID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        draftID
+        round
+        teamID
+        playerID
+        slottedRound
         createdAt
         updatedAt
         __typename

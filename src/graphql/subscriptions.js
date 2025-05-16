@@ -12,6 +12,7 @@ export const onCreatePlayer = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       evaluations {
@@ -39,6 +40,7 @@ export const onUpdatePlayer = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       evaluations {
@@ -66,6 +68,7 @@ export const onDeletePlayer = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       evaluations {
@@ -183,6 +186,7 @@ export const onCreateCoach = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       playerAssignments {
@@ -206,6 +210,7 @@ export const onUpdateCoach = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       playerAssignments {
@@ -229,6 +234,7 @@ export const onDeleteCoach = /* GraphQL */ `
         name
         createdAt
         updatedAt
+        draftTeamsId
         __typename
       }
       playerAssignments {
@@ -340,6 +346,7 @@ export const onCreateTeam = /* GraphQL */ `
       }
       createdAt
       updatedAt
+      draftTeamsId
       __typename
     }
   }
@@ -359,6 +366,7 @@ export const onUpdateTeam = /* GraphQL */ `
       }
       createdAt
       updatedAt
+      draftTeamsId
       __typename
     }
   }
@@ -376,6 +384,139 @@ export const onDeleteTeam = /* GraphQL */ `
         nextToken
         __typename
       }
+      createdAt
+      updatedAt
+      draftTeamsId
+      __typename
+    }
+  }
+`;
+export const onCreateDraft = /* GraphQL */ `
+  subscription OnCreateDraft($filter: ModelSubscriptionDraftFilterInput) {
+    onCreateDraft(filter: $filter) {
+      id
+      name
+      phase
+      teams {
+        nextToken
+        __typename
+      }
+      draftOrder
+      picks {
+        nextToken
+        __typename
+      }
+      preAssignedPlayers {
+        playerID
+        teamID
+        slottedRound
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateDraft = /* GraphQL */ `
+  subscription OnUpdateDraft($filter: ModelSubscriptionDraftFilterInput) {
+    onUpdateDraft(filter: $filter) {
+      id
+      name
+      phase
+      teams {
+        nextToken
+        __typename
+      }
+      draftOrder
+      picks {
+        nextToken
+        __typename
+      }
+      preAssignedPlayers {
+        playerID
+        teamID
+        slottedRound
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteDraft = /* GraphQL */ `
+  subscription OnDeleteDraft($filter: ModelSubscriptionDraftFilterInput) {
+    onDeleteDraft(filter: $filter) {
+      id
+      name
+      phase
+      teams {
+        nextToken
+        __typename
+      }
+      draftOrder
+      picks {
+        nextToken
+        __typename
+      }
+      preAssignedPlayers {
+        playerID
+        teamID
+        slottedRound
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateDraftPick = /* GraphQL */ `
+  subscription OnCreateDraftPick(
+    $filter: ModelSubscriptionDraftPickFilterInput
+  ) {
+    onCreateDraftPick(filter: $filter) {
+      id
+      draftID
+      round
+      teamID
+      playerID
+      slottedRound
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateDraftPick = /* GraphQL */ `
+  subscription OnUpdateDraftPick(
+    $filter: ModelSubscriptionDraftPickFilterInput
+  ) {
+    onUpdateDraftPick(filter: $filter) {
+      id
+      draftID
+      round
+      teamID
+      playerID
+      slottedRound
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteDraftPick = /* GraphQL */ `
+  subscription OnDeleteDraftPick(
+    $filter: ModelSubscriptionDraftPickFilterInput
+  ) {
+    onDeleteDraftPick(filter: $filter) {
+      id
+      draftID
+      round
+      teamID
+      playerID
+      slottedRound
       createdAt
       updatedAt
       __typename
