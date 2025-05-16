@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import { generateClient } from 'aws-amplify/api';
-import { listPlayers, listPlayerEvaluations, listTeams, listCoaches } from './graphql/queries';
-import { updatePlayer } from './graphql/mutations';
+import { listPlayers, listPlayerEvaluations, listTeams, listCoaches, getDraft, draftPicksByDraftID } from './graphql/queries';
+import { updatePlayer, createDraftPick } from './graphql/mutations';
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,6 +18,7 @@ import TeamsPage from './TeamsPage';
 import AssignPlayersPage from './AssignPlayersPage';
 import CoachesPage from './CoachesPage';
 import TeamDetailsPage from './TeamDetailsPage';
+import DraftsPage, { PostDraftEvaluation, WriteResultsAndExportButtons } from './DraftsPage';
 
 Amplify.configure(awsExports);
 
@@ -232,7 +233,8 @@ function App() {
         <Link to="/" style={{ marginRight: 16 }}>Players</Link>
         <Link to="/teams" style={{ marginRight: 16 }}>Teams</Link>
         <Link to="/coaches" style={{ marginRight: 16 }}>Coaches</Link>
-        <Link to="/assign-players">Assign Players</Link>
+        <Link to="/assign-players" style={{ marginRight: 16 }}>Assign Players</Link>
+        <Link to="/drafts">Drafts</Link>
       </div>
       <Routes>
         <Route
@@ -255,6 +257,8 @@ function App() {
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/coaches" element={<CoachesPage />} />
         <Route path="/assign-players" element={<AssignPlayersPage />} />
+        <Route path="/drafts" element={<DraftsPage />} />
+        <Route path="/drafts/:id" element={<DraftPage />} />
         <Route path="/new" element={<PlayerForm mode="new" onSave={handleRefresh} />} />
         <Route path="/edit/:id" element={<PlayerForm mode="edit" onSave={handleRefresh} />} />
         <Route path="/teams/:id" element={<TeamDetailsPage />} />
@@ -264,4 +268,227 @@ function App() {
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />); 
+root.render(<App />);
+
+// Placeholder for the unique draft page
+function DraftPage() {
+  const { id } = useParams();
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [draft, setDraft] = React.useState(null);
+  const [teams, setTeams] = React.useState([]);
+  const [players, setPlayers] = React.useState([]);
+  const [draftPicks, setDraftPicks] = React.useState([]);
+  const [availablePlayers, setAvailablePlayers] = React.useState([]);
+  const [autoPicking, setAutoPicking] = React.useState(false);
+  const [showPost, setShowPost] = React.useState(false);
+
+  // Load draft, teams, players, and picks
+  React.useEffect(() => {
+    async function fetchAll() {
+      setLoading(true);
+      setError(null);
+      try {
+        const client = generateClient();
+        const [draftRes, teamsRes, playersRes, evalsRes, picksRes] = await Promise.all([
+          client.graphql({ query: getDraft, variables: { id } }),
+          client.graphql({ query: listTeams }),
+          client.graphql({ query: listPlayers }),
+          client.graphql({ query: listPlayerEvaluations, variables: { limit: 1000 } }),
+          client.graphql({ query: draftPicksByDraftID, variables: { draftID: id } }),
+        ]);
+        const players = playersRes.data.listPlayers.items;
+        const evaluations = evalsRes.data.listPlayerEvaluations.items;
+        // Join evaluation data to players (by player.id === evaluation.playerId)
+        const enrichedPlayers = players.map(player => {
+          const evaluation = evaluations.find(e => e.playerId === player.id) || {};
+          return { ...player, ...evaluation };
+        });
+        setDraft(draftRes.data.getDraft);
+        setTeams(teamsRes.data.listTeams.items);
+        setPlayers(enrichedPlayers);
+        setDraftPicks(picksRes.data.draftPicksByDraftID.items);
+      } catch (err) {
+        setError('Failed to load draft: ' + (err.errors?.[0]?.message || err.message));
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAll();
+  }, [id]);
+
+  // Determine current team and round
+  let currentTeamId = null;
+  let currentTeam = null;
+  let currentRound = 1;
+  if (draft && draft.draftOrder && draft.draftOrder.length > 0 && players.length > 0) {
+    const pickNum = draftPicks.length;
+    const totalTeams = draft.draftOrder.length;
+    currentRound = Math.floor(pickNum / totalTeams) + 1;
+    const pickInRound = pickNum % totalTeams;
+    currentTeamId = draft.draftOrder[pickInRound];
+    currentTeam = teams.find(t => t.id === currentTeamId);
+  }
+
+  // Update available players as picks are made
+  React.useEffect(() => {
+    if (!draft) return;
+    const pickedPlayerIds = draftPicks.map(p => p.playerID);
+    let filteredPlayers = players.filter(p => !pickedPlayerIds.includes(p.id));
+    // Exclude pre-assigned players except for the current team/round
+    if (draft.preAssignedPlayers && currentTeamId && currentRound) {
+      filteredPlayers = filteredPlayers.filter(p => {
+        const pre = draft.preAssignedPlayers.find(pa => pa.playerID === p.id);
+        if (!pre) return true;
+        return pre.teamID === currentTeamId && pre.slottedRound === currentRound;
+      });
+    }
+    setAvailablePlayers(filteredPlayers);
+  }, [draft, draftPicks, players, currentTeamId, currentRound]);
+
+  // Helper to get pre-assigned player for a team and round
+  function getPreAssignedPlayer(teamID, round) {
+    if (!draft || !draft.preAssignedPlayers) return null;
+    return draft.preAssignedPlayers.find(
+      (p) => p.teamID === teamID && p.slottedRound === round
+    );
+  }
+
+  // Handle making a pick
+  const handleMakePick = async (playerId) => {
+    if (!draft || !currentTeamId) return;
+    const client = generateClient();
+    await client.graphql({
+      query: createDraftPick,
+      variables: {
+        input: {
+          draftID: draft.id,
+          round: Math.floor(draftPicks.length / draft.draftOrder.length) + 1,
+          teamID: currentTeamId,
+          playerID: playerId,
+        },
+      },
+    });
+    // Refresh picks
+    const picksRes = await client.graphql({ query: draftPicksByDraftID, variables: { draftID: draft.id } });
+    setDraftPicks(picksRes.data.draftPicksByDraftID.items);
+  };
+
+  // Auto-pick pre-assigned player if needed
+  React.useEffect(() => {
+    if (!draft || !draft.draftOrder || availablePlayers.length === 0) return;
+    const pickNum = draftPicks.length;
+    const totalTeams = draft.draftOrder.length;
+    const round = Math.floor(pickNum / totalTeams) + 1;
+    const pickInRound = pickNum % totalTeams;
+    const teamID = draft.draftOrder[pickInRound];
+    const pre = getPreAssignedPlayer(teamID, round);
+    if (pre && availablePlayers.some(p => p.id === pre.playerID) && !draftPicks.some(p => p.playerID === pre.playerID) && !autoPicking) {
+      setAutoPicking(true);
+      const autoPick = async () => {
+        const client = generateClient();
+        await client.graphql({
+          query: createDraftPick,
+          variables: {
+            input: {
+              draftID: draft.id,
+              round,
+              teamID,
+              playerID: pre.playerID,
+              slottedRound: pre.slottedRound,
+            },
+          },
+        });
+        const picksRes = await client.graphql({ query: draftPicksByDraftID, variables: { draftID: draft.id } });
+        setDraftPicks(picksRes.data.draftPicksByDraftID.items);
+        setAutoPicking(false);
+      };
+      autoPick();
+    }
+  }, [draft, draftPicks, availablePlayers, autoPicking]);
+
+  if (loading) return <div>Loading draft...</div>;
+  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (!draft) return <div>Draft not found.</div>;
+
+  return (
+    <div style={{ padding: 24 }}>
+      <h1>Live Draft: {draft.name}</h1>
+      <button onClick={() => setShowPost(p => !p)} style={{ marginBottom: 16 }}>
+        {showPost ? 'Back to Live Draft' : 'Show Post-Draft Evaluation'}
+      </button>
+      {showPost ? (
+        <div>
+          <h2>Post-Draft Evaluation</h2>
+          <div style={{ marginBottom: 24 }}>
+            <WriteResultsAndExportButtons
+              draftPicks={draftPicks}
+              players={players}
+              teams={teams}
+            />
+          </div>
+          <PostDraftEvaluation
+            teams={teams}
+            players={players}
+            draftPicks={draftPicks}
+          />
+        </div>
+      ) : (
+        <>
+          <h3>Draft Order</h3>
+          <ol>
+            {draft.draftOrder.map((teamId) => {
+              const team = teams.find((t) => t.id === teamId);
+              return <li key={teamId}>{team ? team.name : teamId}</li>;
+            })}
+          </ol>
+          <h3>Current Round: {currentRound}</h3>
+          <h3>Current Team: {currentTeam ? currentTeam.name : currentTeamId}</h3>
+          {availablePlayers.length > 0 ? (() => {
+            const pickNum = draftPicks.length;
+            const totalTeams = draft.draftOrder.length;
+            const round = Math.floor(pickNum / totalTeams) + 1;
+            const pickInRound = pickNum % totalTeams;
+            const teamID = draft && draft.draftOrder ? draft.draftOrder[pickInRound] : null;
+            const pre = getPreAssignedPlayer(teamID, round);
+            if ((autoPicking || (pre && availablePlayers.some(p => p.id === pre.playerID) && !draftPicks.some(p => p.playerID === pre.playerID)))) {
+              const player = players.find(p => p.id === pre?.playerID);
+              return (
+                <div style={{ color: 'orange', marginBottom: 12 }}>
+                  Skipped: {currentTeam ? currentTeam.name : teamID} auto-picked pre-assigned player {player ? player.name : pre?.playerID} for round {pre?.slottedRound}
+                </div>
+              );
+            }
+            return (
+              <>
+                <h4>Available Players</h4>
+                <ul>
+                  {availablePlayers.map((player) => (
+                    <li key={player.id}>
+                      {player.name}
+                      <button onClick={() => handleMakePick(player.id)} style={{ marginLeft: 8 }}>
+                        Pick
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            );
+          })() : <div style={{ color: 'green', marginBottom: 12 }}>Draft complete! All players have been picked.</div>}
+          <h4>Picks So Far</h4>
+          <ol>
+            {draftPicks.map((pick, idx) => {
+              const team = teams.find((t) => t.id === pick.teamID);
+              const player = players.find((p) => p.id === pick.playerID);
+              return (
+                <li key={pick.id || idx}>
+                  {team ? team.name : pick.teamID} picked {player ? player.name : pick.playerID}
+                </li>
+              );
+            })}
+          </ol>
+        </>
+      )}
+    </div>
+  );
+} 

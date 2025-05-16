@@ -6,6 +6,8 @@
 
 export { default as CoachCreateForm } from "./CoachCreateForm";
 export { default as CoachUpdateForm } from "./CoachUpdateForm";
+export { default as DraftCreateForm } from "./DraftCreateForm";
+export { default as DraftUpdateForm } from "./DraftUpdateForm";
 export { default as NewForm1 } from "./NewForm1";
 export { default as PlayerCreateForm } from "./PlayerCreateForm";
 export { default as PlayerUpdateForm } from "./PlayerUpdateForm";

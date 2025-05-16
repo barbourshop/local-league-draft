@@ -55,3 +55,40 @@ type Team @model
   players: [Player] @hasMany(indexName: "byTeam", fields: ["id"])
   coaches: [Coach] @hasMany(indexName: "byTeam", fields: ["id"])
 }
+
+enum DraftPhase {
+  PRE
+  DURING
+  POST
+}
+
+# Represents a single draft event
+ type Draft @model @auth(rules: [{ allow: public, provider: apiKey }]) {
+  id: ID!
+  name: String!
+  phase: DraftPhase!
+  teams: [Team] @hasMany
+  draftOrder: [ID!] # Array of team IDs in draft order
+  picks: [DraftPick] @hasMany(indexName: "byDraft", fields: ["id"])
+  preAssignedPlayers: [PreAssignedPlayer]
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+# Represents a pick in the draft
+ type DraftPick @model @auth(rules: [{ allow: public, provider: apiKey }]) {
+  id: ID!
+  draftID: ID! @index(name: "byDraft")
+  round: Int!
+  teamID: ID!
+  playerID: ID!
+  slottedRound: Int
+  createdAt: AWSDateTime
+}
+
+# Represents a pre-assigned player for a team in a draft
+ type PreAssignedPlayer {
+  playerID: ID!
+  teamID: ID!
+  slottedRound: Int!
+}
